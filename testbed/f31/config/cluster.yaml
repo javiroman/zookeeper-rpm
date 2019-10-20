@@ -1,0 +1,16 @@
+---
+- name: zk01
+  box: fedora/31-beta-cloud-base
+  ip: 100.0.10.100
+  mem: 4096
+  cpu: 4
+- name: zk02
+  box: fedora/31-beta-cloud-base
+  ip: 100.0.10.101
+  mem: 2048
+  cpu: 2
+- name: zk03
+  box: fedora/31-beta-cloud-base
+  ip: 100.0.10.102
+  mem: 2048
+  cpu: 2
