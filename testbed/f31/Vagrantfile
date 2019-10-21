@@ -23,7 +23,10 @@ end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Disabling the default /vagrant share
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  #config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder ".", "/home/javiroman/HACK/dev/Fedora/zookeeper.git/",
+    type: "nfs",
+    nfs_version: 4
 
   cluster.each do |servers|
     # VM definition
