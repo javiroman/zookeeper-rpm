@@ -1,0 +1,180 @@
+diff -upNr apache-zookeeper-3.5.6-vanilla/build.xml apache-zookeeper-3.5.6/build.xml
+--- apache-zookeeper-3.5.6-vanilla/build.xml	2019-10-08 20:14:39.000000000 +0000
++++ apache-zookeeper-3.5.6/build.xml	2019-11-03 19:17:50.275919939 +0000
+@@ -33,9 +33,9 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+     <property name="wagon-http.version" value="2.4"/>
+     <property name="maven-ant-tasks.version" value="2.1.3"/>
+     <property name="log4j.version" value="1.2.17"/>
+-    <property name="jline.version" value="2.11"/>
++    <property name="jline.version" value="2.14.6"/>
+ 
+-    <property name="audience-annotations.version" value="0.5.0" />
++    <property name="audience-annotations.version" value="0.11.0" />
+ 
+     <property name="netty.version" value="4.1.42.Final"/>
+ 
+@@ -54,8 +54,8 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+ 
+     <property name="javacc.version" value="5.0"/>
+ 
+-    <property name="jetty.version" value="9.4.15.v20190215"/>
+-    <property name="jackson.version" value="2.9.10"/>
++    <property name="jetty.version" value="9.4.19.v20190610"/>
++    <property name="jackson.version" value="2.10.0"/>
+     <property name="dependency-check-ant.version" value="4.0.2"/>
+ 
+     <property name="commons-io.version" value="2.6"/>
+@@ -255,6 +255,7 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+ 
+     <path id="base.classpath">
+       <pathelement location="${build.classes}"/>
++      <pathelement location="/usr/share/java/audience-annotations.jar"/>
+       <!-- allow the user to override (e.g. if there are local versions) -->
+       <fileset dir="${additional.lib.dir}">
+           <include name="${additional.lib.dir.includes}" />
+@@ -298,7 +299,7 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+         <mkdir dir="${ivy.package.lib}"/>
+         <mkdir dir="${ivy.test.lib}"/>
+         <condition property="ivy.jar.exists">
+-          <available file="${lib.dir}/ivy-${ivy.version}.jar"/>
++	   <available file="/usr/share/java/ivy.jar"/>
+         </condition>
+ 
+         <tstamp>
+@@ -325,7 +326,7 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+     <target name="jute" depends="generate_jute_parser">
+         <javac srcdir="${jute_javacc.dir}" destdir="${build.classes}" includeantruntime="false"
+             target="${javac.target}" source="${javac.source}"
+-            includes="org/apache/jute/**" debug="on" encoding="${build.encoding}" classpath="${ivy.lib}/audience-annotations-${audience-annotations.version}.jar">
++		includes="org/apache/jute/**" debug="on" encoding="${build.encoding}" classpath="/usr/share/java/audience-annotations.jar">
+           <src path="${basedir}/zookeeper-jute/src/main/java" />
+           <src path="${jute_javacc.dir}" />
+         </javac>
+@@ -400,14 +401,14 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+     
+     <target name="build-generated" depends="compile_jute,version-info,process-template,ivy-retrieve" >
+         <javac srcdir="${src_generated.dir}" destdir="${build.classes}" includeantruntime="false"
+-            target="${javac.target}" source="${javac.source}" debug="on" encoding="${build.encoding}" classpath="${ivy.lib}/audience-annotations-${audience-annotations.version}.jar" />
++		target="${javac.target}" source="${javac.source}" debug="on" encoding="${build.encoding}" classpath="/usr/share/java/audience-annotations.jar" />
+     </target>
+     
+     <target name="ivy-download" unless="ivy.jar.exists" depends="init">
+       <delete dir="${lib.dir}"
+-              includes="ivy-*.jar" excludes="ivy-${ivy.version}.jar"/>
+-      <get src="${ivy.url}/${ivy.version}/ivy-${ivy.version}.jar"
+-           dest="${lib.dir}/ivy-${ivy.version}.jar" usetimestamp="true"/>
++              includes="ivy.jar" excludes="ivy.jar"/>
++      <get src="${ivy.url}/ivy.jar"
++           dest="${lib.dir}/ivy.jar" usetimestamp="true"/>
+     </target>
+ 
+     <target name="ivy-taskdef" unless="ivy.initialized">
+@@ -589,7 +590,7 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+          doctitle="${Name} ${version} API"
+          bottom="Copyright &amp;copy; ${year} The Apache Software Foundation"
+          doclet="org.apache.yetus.audience.tools.IncludePublicAnnotationsStandardDoclet"
+-         docletpath="${ivy.lib}/audience-annotations-${audience-annotations.version}.jar"
++	 docletpath="/usr/share/java/audience-annotations.jar"
+          >
+ 
+         <fileset dir="${java.server.src.dir}">
+@@ -1581,12 +1582,12 @@ xmlns:cs="antlib:com.puppycrawl.tools.ch
+         <property name="findbugs.report.htmlfile" value="${findbugs.out.dir}/zookeeper-findbugs-report.html" />
+         <property name="findbugs.report.xmlfile" value="${findbugs.out.dir}/zookeeper-findbugs-report.xml" />
+         <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" 
+-                classpath="${findbugs.home}/lib/findbugs-ant.jar" />
++		classpath="/usr/share/java/ant/ant-findbugs.jar" />
+         <mkdir dir="${findbugs.out.dir}" />
+         <findbugs home="${findbugs.home}" output="xml:withMessages" excludeFilter="${findbugs.exclude.file}" 
+                 outputFile="${findbugs.report.xmlfile}" effort="max" jvmargs="-Xmx512M">
+             <auxClasspath>
+-                <fileset dir="${ivy.lib}">
++		<fileset dir="/usr/share/findbugs">
+                     <include name="**/*.jar" />
+                 </fileset>
+             </auxClasspath>
+diff -upNr apache-zookeeper-3.5.6-vanilla/ivysettings.xml apache-zookeeper-3.5.6/ivysettings.xml
+--- apache-zookeeper-3.5.6-vanilla/ivysettings.xml	2019-10-05 11:27:23.000000000 +0000
++++ apache-zookeeper-3.5.6/ivysettings.xml	2019-11-03 19:17:26.352821881 +0000
+@@ -17,24 +17,15 @@
+    limitations under the License.
+ -->
+ 
+-  <property name="repo.maven.org"
+-    value="https://repo1.maven.org/maven2/" override="false"/>
+-  <property name="repo.jboss.org"
+-    value="https://repository.jboss.org/nexus/content/groups/public/" override="false"/>
+-  <property name="maven2.pattern"
+-    value="[organisation]/[module]/[revision]/[module]-[revision]"/>
+-  <property name="maven2.pattern.ext" value="${maven2.pattern}.[ext]"/>
+   <include url="${ivy.default.conf.dir}/ivyconf-local.xml"/>
+   <settings defaultResolver="default"/>
++  <typedef name="xmvn" classname="org.fedoraproject.xmvn.connector.ivy.IvyResolver"/>
+   <resolvers>
+-    <ibiblio name="maven2" root="${repo.maven.org}"
+-      pattern="${maven2.pattern.ext}" m2compatible="true"/>
+-    <ibiblio name="jboss-maven2" root="${repo.jboss.org}"
+-      pattern="${maven2.pattern.ext}" m2compatible="true"/>
++
++    <xmvn name="XMvn"/>
+ 
+     <chain name="default" dual="true">
+-      <resolver ref="maven2"/>
+-      <resolver ref="jboss-maven2"/>
++      <resolver ref="XMvn"/>
+     </chain>
+ 
+   </resolvers>
+diff -upNr apache-zookeeper-3.5.6-vanilla/pom.xml apache-zookeeper-3.5.6/pom.xml
+--- apache-zookeeper-3.5.6-vanilla/pom.xml	2019-10-08 20:14:39.000000000 +0000
++++ apache-zookeeper-3.5.6/pom.xml	2019-11-03 19:17:26.353821885 +0000
+@@ -272,16 +272,16 @@
+     <!-- dependency versions -->
+     <slf4j.version>1.7.25</slf4j.version>
+     <audience-annotations.version>0.5.0</audience-annotations.version>
+-    <junit.version>4.12</junit.version>
++    <junit.version>4.12-9</junit.version>
+     <log4j.version>1.2.17</log4j.version>
+-    <mockito.version>2.27.0</mockito.version>
+-    <hamcrest.version>1.3</hamcrest.version>
+-    <commons-cli.version>1.2</commons-cli.version>
+-    <jetty.version>9.4.17.v20190418</jetty.version>
+-    <netty.version>4.1.42.Final</netty.version>
+-    <jackson.version>2.9.10</jackson.version>
++    <mockito.version>2.23.9</mockito.version>
++    <hamcrest.version>1.3-23</hamcrest.version>
++    <commons-cli.version>1.4-4</commons-cli.version>
++    <jetty.version>9.4.19.v20190610</jetty.version>
++    <netty.version>4.1.13</netty.version>
++    <jackson.version>2.10.0</jackson.version>
+     <json.version>1.1.1</json.version>
+-    <jline.version>2.11</jline.version>
++    <jline.version>2.14.6</jline.version>
+     <snappy.version>1.1.7</snappy.version>
+     <kerby.version>1.1.0</kerby.version>
+     <bouncycastle.version>1.60</bouncycastle.version>
+diff -upNr apache-zookeeper-3.5.6-vanilla/zookeeper-contrib/build-contrib.xml apache-zookeeper-3.5.6/zookeeper-contrib/build-contrib.xml
+--- apache-zookeeper-3.5.6-vanilla/zookeeper-contrib/build-contrib.xml	2019-10-05 11:27:23.000000000 +0000
++++ apache-zookeeper-3.5.6/zookeeper-contrib/build-contrib.xml	2019-11-03 19:17:26.354821889 +0000
+@@ -103,7 +103,7 @@
+     <mkdir dir="${ivy.lib}"/>
+     <mkdir dir="${ivy.test.lib}"/>
+     <condition property="ivy.jar.exists">
+-      <available file="${lib.dir}/ivy-${ivy.version}.jar"/>
++      <available file="/usr/share/java/ivy.jar"/>
+     </condition>
+ 
+     <antcall target="init-contrib"/>
+@@ -204,9 +204,9 @@
+   <!-- ====================================================== -->
+   <target name="ivy-download" unless="ivy.jar.exists" depends="init">
+     <delete dir="${lib.dir}"
+-            includes="ivy-*.jar" excludes="ivy-${ivy.version}.jar"/>
+-    <get src="${ivy.url}/${ivy.version}/ivy-${ivy.version}.jar"
+-         dest="${lib.dir}/ivy-${ivy.version}.jar" usetimestamp="true"/>
++	    includes="ivy.jar" excludes="ivy.jar"/>
++       <get src="${ivy.url}/ivy.jar"
++	    dest="${lib.dir}/ivy.jar" usetimestamp="true"/>
+   </target>
+ 
+   <target name="ivy-init" depends="ivy-download" unless="ivy.initialized">
